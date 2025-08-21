@@ -1,36 +1,40 @@
 import math
+import random
 def print_board(board):
+    """Prints the current state of the game board."""
     for row in [board[i:i+3] for i in range(0, 9, 3)]:
         print('| ' + ' | '.join(row) + ' |')
-
 def available_moves(board):
+    """Returns a list of available spots on the board."""
     return [i for i, spot in enumerate(board) if spot == ' ']
-
 def check_winner(board, player):
+    """Checks if the given player has won the game."""
     # Check for winning rows
     for i in range(0, 9, 3):
         if all(s == player for s in board[i:i+3]):
             return True
+    
+    # Check for winning columns
     for i in range(3):
         if board[i] == board[i+3] == board[i+6] == player:
             return True
+            
+    # Check for winning diagonals
     if board[0] == board[4] == board[8] == player:
         return True
     if board[2] == board[4] == board[6] == player:
         return True
+        
     return False
+
 def minimax(board, is_maximizing):
     """
-    Minimax algorithm with alpha-beta pruning to find the best move.
-    'X' is the minimizing player (computer), 'O' is the maximizing player (human).
-    The AI plays as 'X' and will always make the optimal move.
+    Minimax algorithm to find the best move.
+    'X' is the maximizing player (computer), 'O' is the minimizing player (human).
     """
-    # Define the players and the opponent for clarity
     ai_player = 'X'
     human_player = 'O'
     
-    # Check for a terminal state and return the score
-    # Score for a win is +1, loss is -1, and tie is 0.
     if check_winner(board, ai_player):
         return 1, None
     if check_winner(board, human_player):
@@ -39,37 +43,74 @@ def minimax(board, is_maximizing):
         return 0, None
 
     if is_maximizing:
-        # The AI is the maximizing player
         best_score = -math.inf
         best_move = None
         for move in available_moves(board):
             board[move] = ai_player
             score, _ = minimax(board, False)
-            board[move] = ' '  # Undo the move
-
+            board[move] = ' '
             if score > best_score:
                 best_score = score
                 best_move = move
         return best_score, best_move
     else:
-        # The human is the minimizing player
         best_score = math.inf
         best_move = None
         for move in available_moves(board):
             board[move] = human_player
             score, _ = minimax(board, True)
-            board[move] = ' '  # Undo the move
-
+            board[move] = ' '
             if score < best_score:
                 best_score = score
                 best_move = move
         return best_score, best_move
 
 def get_computer_move(board):
-    """Gets the optimal move for the computer using Minimax."""
-    # The AI is the maximizing player, so we call minimax with True.
-    _, best_move = minimax(board, True)
-    return best_move
+    """
+    Gets a beatable move for the computer. It finds all moves with a positive
+    score and chooses one randomly. If no such moves exist, it chooses a
+    random move to prolong the game.
+    """
+    ai_player = 'X'
+    human_player = 'O'
+    
+    # If the board is empty, take the center.
+    if not available_moves(board):
+        return 4
+    
+    # Check for an immediate win for the computer
+    for move in available_moves(board):
+        board[move] = ai_player
+        if check_winner(board, ai_player):
+            board[move] = ' '
+            return move
+        board[move] = ' '
+
+    # Check for an immediate block of the human player
+    for move in available_moves(board):
+        board[move] = human_player
+        if check_winner(board, human_player):
+            board[move] = ' '
+            return move
+        board[move] = ' '
+    
+    # If no immediate win or block, use a simplified minimax approach.
+    # Find all moves that result in a positive score.
+    positive_moves = []
+    for move in available_moves(board):
+        board[move] = ai_player
+        score, _ = minimax(board, False)
+        board[move] = ' '
+        if score > 0:
+            positive_moves.append(move)
+            
+    # If there are any moves that lead to a win or a draw, pick one at random.
+    if positive_moves:
+        return random.choice(positive_moves)
+    
+    # If all remaining moves lead to a loss, choose a random available move to delay the loss.
+    return random.choice(available_moves(board))
+
 
 def get_player_move(board):
     """Gets a valid move from the human player."""
@@ -118,5 +159,6 @@ def play_game():
 
         # Switch turns
         turn = 'X' if turn == 'O' else 'O'
+
 if __name__ == "__main__":
     play_game()
