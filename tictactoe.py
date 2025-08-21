@@ -1,34 +1,24 @@
 import math
-
 def print_board(board):
-    """Prints the current state of the game board."""
     for row in [board[i:i+3] for i in range(0, 9, 3)]:
         print('| ' + ' | '.join(row) + ' |')
 
 def available_moves(board):
-    """Returns a list of available spots on the board."""
     return [i for i, spot in enumerate(board) if spot == ' ']
 
 def check_winner(board, player):
-    """Checks if the given player has won the game."""
     # Check for winning rows
     for i in range(0, 9, 3):
         if all(s == player for s in board[i:i+3]):
             return True
-    
-    # Check for winning columns
     for i in range(3):
         if board[i] == board[i+3] == board[i+6] == player:
             return True
-            
-    # Check for winning diagonals
     if board[0] == board[4] == board[8] == player:
         return True
     if board[2] == board[4] == board[6] == player:
         return True
-        
     return False
-
 def minimax(board, is_maximizing):
     """
     Minimax algorithm with alpha-beta pruning to find the best move.
@@ -128,6 +118,5 @@ def play_game():
 
         # Switch turns
         turn = 'X' if turn == 'O' else 'O'
-
 if __name__ == "__main__":
     play_game()
